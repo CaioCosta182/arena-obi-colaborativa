@@ -24,11 +24,10 @@ const toolboxInfo = {
 interface WorkspaceProps {
   questao: QuestaoOBI;
   onVoltar: () => void;
-  onProxima: () => void;
+  onProxima: (erros: number, tempoGasto: number) => void;
   progresso: string;
 }
 
-// 10 minutos em segundos
 const TEMPO_TURNO = 600; 
 
 export default function BlocklyWorkspace({ questao, onVoltar, onProxima, progresso }: WorkspaceProps) {
@@ -39,9 +38,11 @@ export default function BlocklyWorkspace({ questao, onVoltar, onProxima, progres
   
   const [tempoRestante, setTempoRestante] = useState<number>(TEMPO_TURNO);
   const [pilotoAtual, setPilotoAtual] = useState<number>(1);
-  
-  // Define a razão pela qual o ecrã foi bloqueado
   const [motivoTroca, setMotivoTroca] = useState<'tempo' | 'acerto' | null>(null);
+
+  // MÉTRICAS DE AVALIAÇÃO
+  const [erros, setErros] = useState<number>(0);
+  const [tempoGasto, setTempoGasto] = useState<number>(0);
 
   useEffect(() => {
     if (blocklyDiv.current && !workspace.current) {
@@ -53,28 +54,29 @@ export default function BlocklyWorkspace({ questao, onVoltar, onProxima, progres
     }
   }, []);
 
-  // Cronómetro
   useEffect(() => {
-    // Pára o relógio se estiverem na janela de troca ou se já acertaram
     if (motivoTroca || acertou) return;
 
     const timer = setInterval(() => {
       setTempoRestante((prev) => {
         if (prev <= 1) {
-          setMotivoTroca('tempo'); // Gatilho 1: 10 Minutos esgotados
+          setMotivoTroca('tempo');
           return 0;
         }
         return prev - 1;
       });
+      // Contador ascendente para a métrica final do professor
+      setTempoGasto((prev) => prev + 1);
     }, 1000);
 
     return () => clearInterval(timer);
   }, [motivoTroca, acertou]);
 
-  // Limpeza visual ao avançar de nível
   useEffect(() => {
     setFeedback('');
     setAcertou(false);
+    setErros(0);
+    setTempoGasto(0);
     if (workspace.current) {
       workspace.current.clear();
     }
@@ -90,15 +92,17 @@ export default function BlocklyWorkspace({ questao, onVoltar, onProxima, progres
     const timeoutId = setTimeout(() => {
       worker.terminate();
       setFeedback('⏳ Tempo Esgotado! Cuidado com ciclos infinitos.');
+      setErros(e => e + 1);
     }, 2000);
 
     worker.onmessage = (e) => {
       clearTimeout(timeoutId);
       setFeedback(e.data.message);
       if (e.data.status === 'AC') {
-        setAcertou(true); // Permite ver o botão de Próxima Questão
+        setAcertou(true); 
       } else {
         setAcertou(false);
+        setErros(err => err + 1); // Contabiliza submissão incorreta
       }
       worker.terminate(); 
     };
@@ -106,20 +110,20 @@ export default function BlocklyWorkspace({ questao, onVoltar, onProxima, progres
     worker.onerror = () => {
       clearTimeout(timeoutId);
       setFeedback('⚠️ Erro crítico.');
+      setErros(err => err + 1);
       worker.terminate();
     };
 
     worker.postMessage({ code: code, outputEsperado: questao.output_esperado });
   };
 
-  // Função central que efetiva a troca física dos alunos
   const handleConfirmarTroca = () => {
     setPilotoAtual(prev => prev === 1 ? 2 : 1);
     setTempoRestante(TEMPO_TURNO);
     
-    // Se a troca for porque acertaram, ao clicar no botão o jogo avança
     if (motivoTroca === 'acerto') {
-      onProxima();
+      // Envia as métricas recolhidas para a aplicação central
+      onProxima(erros, tempoGasto);
     }
     setMotivoTroca(null);
   };
@@ -132,8 +136,6 @@ export default function BlocklyWorkspace({ questao, onVoltar, onProxima, progres
 
   return (
     <div className="flex h-full flex-col relative">
-      
-      {/* MODAL INTELIGENTE DE REVEZAMENTO */}
       {motivoTroca && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm">
           <div className="flex max-w-md flex-col items-center rounded-2xl bg-white p-8 text-center shadow-2xl">
@@ -145,8 +147,8 @@ export default function BlocklyWorkspace({ questao, onVoltar, onProxima, progres
             </h2>
             <p className="mb-6 text-lg text-slate-600">
               {motivoTroca === 'tempo' 
-                ? 'Os 10 minutos acabaram! É altura de trocarem de papéis. Quem estava com o rato agora ajuda a pensar, e quem dava as ideias assume o controlo.'
-                : 'Excelente trabalho de equipa! Antes de passarem para a próxima questão, troquem de lugar para garantir que ambos praticam a codificação.'}
+                ? 'Os 10 minutos acabaram! É altura de trocarem de papéis.'
+                : 'Excelente trabalho de equipa! Troquem de lugar para passar ao próximo desafio.'}
             </p>
             <button 
               onClick={handleConfirmarTroca}
@@ -167,7 +169,6 @@ export default function BlocklyWorkspace({ questao, onVoltar, onProxima, progres
           <p className="text-sm text-blue-800">{questao.descricao}</p>
         </div>
 
-        {/* Painel do Cronómetro */}
         <div className="mx-4 flex flex-col items-center rounded-lg border border-blue-200 bg-white p-2 shadow-inner">
           <span className="text-[10px] font-bold uppercase text-slate-500">A programar agora</span>
           <div className="flex items-center gap-3">
@@ -180,7 +181,7 @@ export default function BlocklyWorkspace({ questao, onVoltar, onProxima, progres
         </div>
 
         <button onClick={onVoltar} className="cursor-pointer rounded-lg bg-slate-200 px-4 py-2 font-semibold text-slate-700 transition-colors hover:bg-slate-300">
-          Sair da Arena
+          Sair
         </button>
       </div>
       
@@ -191,7 +192,6 @@ export default function BlocklyWorkspace({ questao, onVoltar, onProxima, progres
           Juiz Offline: <span className={feedback.includes('🎉') ? 'text-green-600' : 'text-red-500'}>{feedback}</span>
         </div>
         
-        {/* Gatilho 2: Clicar para ir para a próxima questão */}
         {acertou ? (
           <button onClick={() => setMotivoTroca('acerto')} className="cursor-pointer rounded-lg bg-blue-600 px-8 py-3 font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-blue-700 active:scale-95 animate-pulse">
             Próxima Questão ⏭️

@@ -21,13 +21,24 @@ Integração do motor de abstração lógica que permite às crianças programar
 
 ### Customização de Blocos (Padrão OBI)
 Para alinhar a plataforma ao nível de Iniciação da Olimpíada Brasileira de Informática (OBI), o motor do Blockly foi estendido com blocos lógicos customizados.
+
 * **Ações Gamificadas:** Criação de blocos focados em estado e movimentação (`obi_mover`, `obi_se_parede`, `obi_cor`), reduzindo a carga cognitiva para alunos do Ensino Fundamental.
+
 * **Code Generators:** Implementação de geradores em tempo real que traduzem as instruções visuais da criança para código JavaScript válido, preparando o terreno para a avaliação automática (Auto-Judge).
 
 ### 🖥️ Lobby Interativo e Resolução de Conflitos
 * **Interface de Entrada:** Implementação de um Lobby (App.tsx) com cartões gamificados para seleção dos Níveis da OBI. 
+
 * **State Management:** A transição do estado do *Lobby* para a *Arena* ocorre através do roteamento condicional local no React, enviando as propriedades (Props) da questão sorteada.
+
 * **Correção de Árvore DOM:** Remoção do `React.StrictMode` em ambiente de desenvolvimento para evitar a dupla renderização da interface, que causava perda de referência e *bugs* no recurso de drag-and-drop interno da *Toolbox* de mutação do Blockly (como o bloco condicional Se/Senão).
+
+### 📊 Coleta de Métricas Offline (QR Code)
+Como a plataforma é projetada para ambientes sem acesso à rede, a submissão de notas tradicionais (via API) não é viável. A solução implementada foi a criptografia das métricas de uso em um **QR Code dinâmico**.
+
+* **Métricas Extraídas:** Tempo total de resolução, número de submissões incorretas (WA), e identificação dos pilotos.
+
+* **Coleta Passiva:** Ao fim da maratona, a plataforma exibe o código na tela. O professor utiliza a câmera de seu celular para coletar as informações consolidadas da máquina em segundos, garantindo a anotação das notas para a disciplina sem depender de Wi-Fi no laboratório.
 
 **Como executar localmente:**
 \`\`\`bash
