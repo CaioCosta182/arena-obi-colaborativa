@@ -26,11 +26,12 @@ interface WorkspaceProps {
   onVoltar: () => void;
   onProxima: (erros: number, tempoGasto: number) => void;
   progresso: string;
+  baloes: number; // RECEBENDO OS BALÕES AQUI
 }
 
 const TEMPO_TURNO = 600; 
 
-export default function BlocklyWorkspace({ questao, onVoltar, onProxima, progresso }: WorkspaceProps) {
+export default function BlocklyWorkspace({ questao, onVoltar, onProxima, progresso, baloes }: WorkspaceProps) {
   const blocklyDiv = useRef<HTMLDivElement>(null);
   const workspace = useRef<Blockly.WorkspaceSvg | null>(null);
   const [feedback, setFeedback] = useState<string>('');
@@ -40,7 +41,6 @@ export default function BlocklyWorkspace({ questao, onVoltar, onProxima, progres
   const [pilotoAtual, setPilotoAtual] = useState<number>(1);
   const [motivoTroca, setMotivoTroca] = useState<'tempo' | 'acerto' | null>(null);
 
-  // MÉTRICAS DE AVALIAÇÃO
   const [erros, setErros] = useState<number>(0);
   const [tempoGasto, setTempoGasto] = useState<number>(0);
 
@@ -56,7 +56,6 @@ export default function BlocklyWorkspace({ questao, onVoltar, onProxima, progres
 
   useEffect(() => {
     if (motivoTroca || acertou) return;
-
     const timer = setInterval(() => {
       setTempoRestante((prev) => {
         if (prev <= 1) {
@@ -65,10 +64,8 @@ export default function BlocklyWorkspace({ questao, onVoltar, onProxima, progres
         }
         return prev - 1;
       });
-      // Contador ascendente para a métrica final do professor
       setTempoGasto((prev) => prev + 1);
     }, 1000);
-
     return () => clearInterval(timer);
   }, [motivoTroca, acertou]);
 
@@ -102,7 +99,7 @@ export default function BlocklyWorkspace({ questao, onVoltar, onProxima, progres
         setAcertou(true); 
       } else {
         setAcertou(false);
-        setErros(err => err + 1); // Contabiliza submissão incorreta
+        setErros(err => err + 1);
       }
       worker.terminate(); 
     };
@@ -122,7 +119,6 @@ export default function BlocklyWorkspace({ questao, onVoltar, onProxima, progres
     setTempoRestante(TEMPO_TURNO);
     
     if (motivoTroca === 'acerto') {
-      // Envia as métricas recolhidas para a aplicação central
       onProxima(erros, tempoGasto);
     }
     setMotivoTroca(null);
@@ -167,6 +163,20 @@ export default function BlocklyWorkspace({ questao, onVoltar, onProxima, progres
           </span>
           <h2 className="mb-1 text-xl font-bold text-blue-900">{questao.titulo}</h2>
           <p className="text-sm text-blue-800">{questao.descricao}</p>
+        </div>
+
+        {/* --- ÁREA DOS BALÕES DA MARATONA --- */}
+        <div className="flex gap-2 mx-6 min-w-[80px]">
+          {Array.from({ length: baloes }).map((_, i) => (
+            <div 
+              key={i} 
+              className="text-3xl drop-shadow-lg animate-bounce" 
+              style={{ animationDelay: `${i * 0.1}s` }}
+              title={`Balão da Questão ${i + 1}`}
+            >
+              🎈
+            </div>
+          ))}
         </div>
 
         <div className="mx-4 flex flex-col items-center rounded-lg border border-blue-200 bg-white p-2 shadow-inner">

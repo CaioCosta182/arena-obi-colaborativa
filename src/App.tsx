@@ -11,7 +11,6 @@ export default function App() {
   const [questoesSessao, setQuestoesSessao] = useState<QuestaoOBI[]>([]);
   const [indiceAtual, setIndiceAtual] = useState<number>(0);
   
-  // Acumulador de métricas da dupla
   const [metricasGlobais, setMetricasGlobais] = useState({ erros: 0, tempoTotal: 0 });
 
   const handleLogin = (e: React.FormEvent) => {
@@ -43,7 +42,7 @@ export default function App() {
     if (indiceAtual + 1 < questoesSessao.length) {
       setIndiceAtual(prev => prev + 1);
     } else {
-      setTelaAtual('podio'); // Nível concluído!
+      setTelaAtual('podio'); 
     }
   };
 
@@ -58,7 +57,6 @@ export default function App() {
     return `${m}m ${s}s`;
   };
 
-  // --- TELA 1: LOGIN ---
   if (telaAtual === 'login') {
     return (
       <div className="flex h-screen items-center justify-center bg-slate-50 p-4">
@@ -83,7 +81,6 @@ export default function App() {
     );
   }
 
-  // --- TELA 2: LOBBY DE NÍVEIS ---
   if (telaAtual === 'lobby') {
     return (
       <div className="flex h-screen flex-col items-center justify-center bg-slate-50 p-4">
@@ -109,7 +106,6 @@ export default function App() {
     );
   }
 
-  // --- TELA 3: ARENA (BLOCKLY) ---
   if (telaAtual === 'arena') {
     return (
       <div className="h-screen w-screen bg-slate-50 p-4">
@@ -119,15 +115,14 @@ export default function App() {
             onVoltar={() => setTelaAtual('lobby')} 
             onProxima={avancarQuestao}
             progresso={`${indiceAtual + 1}/${questoesSessao.length}`}
+            baloes={indiceAtual} // PASSANDO A QUANTIDADE DE BALÕES AQUI!
           />
         </main>
       </div>
     );
   }
 
-  // --- TELA 4: PÓDIO E QR CODE ---
   if (telaAtual === 'podio') {
-    // Monta os dados que o Professor vai ler com o telemóvel
     const dadosQR = JSON.stringify({
       nivel: questoesSessao[0].nivel,
       p1: pilotos.p1,
@@ -140,7 +135,6 @@ export default function App() {
     return (
       <div className="flex h-screen items-center justify-center bg-slate-800 p-4">
         <div className="flex w-full max-w-3xl overflow-hidden rounded-3xl bg-white shadow-2xl">
-          {/* Painel do QR Code */}
           <div className="flex flex-col items-center justify-center bg-blue-50 p-10 w-1/2">
             <h3 className="mb-6 text-xl font-bold text-blue-900 text-center">Mostrem isto ao Professor! 📱</h3>
             <div className="rounded-xl border-4 border-white shadow-md bg-white p-2">
@@ -148,30 +142,15 @@ export default function App() {
             </div>
             <p className="mt-4 text-sm text-slate-500 text-center">Código de recolha offline</p>
           </div>
-          
-          {/* Painel de Estatísticas */}
           <div className="p-10 w-1/2 flex flex-col justify-center">
             <h1 className="text-4xl font-extrabold text-slate-800 mb-2">🏆 Parabéns!</h1>
             <p className="text-lg text-slate-600 mb-8"><span className="font-bold">{pilotos.p1}</span> e <span className="font-bold">{pilotos.p2}</span> finalizaram a maratona.</p>
-            
             <div className="space-y-4 mb-8">
-              <div className="flex justify-between border-b border-slate-200 pb-2">
-                <span className="text-slate-500">Questões Resolvidas:</span>
-                <span className="font-bold text-slate-800">{questoesSessao.length}</span>
-              </div>
-              <div className="flex justify-between border-b border-slate-200 pb-2">
-                <span className="text-slate-500">Erros de Submissão:</span>
-                <span className="font-bold text-red-500">{metricasGlobais.erros}</span>
-              </div>
-              <div className="flex justify-between border-b border-slate-200 pb-2">
-                <span className="text-slate-500">Tempo Total:</span>
-                <span className="font-bold text-slate-800">{formatarTempo(metricasGlobais.tempoTotal)}</span>
-              </div>
+              <div className="flex justify-between border-b border-slate-200 pb-2"><span className="text-slate-500">Questões Resolvidas:</span><span className="font-bold text-slate-800">{questoesSessao.length}</span></div>
+              <div className="flex justify-between border-b border-slate-200 pb-2"><span className="text-slate-500">Erros de Submissão:</span><span className="font-bold text-red-500">{metricasGlobais.erros}</span></div>
+              <div className="flex justify-between border-b border-slate-200 pb-2"><span className="text-slate-500">Tempo Total:</span><span className="font-bold text-slate-800">{formatarTempo(metricasGlobais.tempoTotal)}</span></div>
             </div>
-
-            <button onClick={resetarSessao} className="w-full rounded-xl bg-slate-800 py-4 font-bold text-white transition-transform hover:bg-slate-900 active:scale-95">
-              Nova Sessão
-            </button>
+            <button onClick={resetarSessao} className="w-full rounded-xl bg-slate-800 py-4 font-bold text-white transition-transform hover:bg-slate-900 active:scale-95">Nova Sessão</button>
           </div>
         </div>
       </div>

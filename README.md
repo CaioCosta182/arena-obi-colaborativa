@@ -40,6 +40,14 @@ Como a plataforma é projetada para ambientes sem acesso à rede, a submissão d
 
 * **Coleta Passiva:** Ao fim da maratona, a plataforma exibe o código na tela. O professor utiliza a câmera de seu celular para coletar as informações consolidadas da máquina em segundos, garantindo a anotação das notas para a disciplina sem depender de Wi-Fi no laboratório.
 
+### 🎈 Gamificação e Recompensa Visual (Padrão ICPC/SBC)
+
+Para aumentar o engajamento dos alunos do Ensino Fundamental, a Arena OBI incorpora elementos visuais das maratonas universitárias de programação (ICPC / Maratona SBC).
+
+* **Feedback Imediato:** A cada desafio concluído com sucesso, a dupla recebe um "balão" flutuante animado no topo da interface.
+
+* **Senso de Progresso:** A acumulação de balões atua como um marcador visual de progresso e conquista, estimulando a continuidade no fluxo do jogo (Game Loop) sem a necessidade de um placar numérico tradicional.
+
 **Como executar localmente:**
 \`\`\`bash
 npm install
