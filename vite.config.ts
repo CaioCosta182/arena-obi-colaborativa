@@ -1,22 +1,20 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
-import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   plugins: [
-    tailwindcss(),
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+      registerType: 'autoUpdate', // Atualiza o app automaticamente quando houver nova versão
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
       manifest: {
         name: 'Arena OBI Colaborativa',
         short_name: 'Arena OBI',
-        description: 'Plataforma offline para Maratona de Programação em Blocos',
-        theme_color: '#2563EB',
-        background_color: '#ffffff',
-        display: 'fullscreen',
+        description: 'Plataforma de Pair Programming Gamificada para a Olimpíada Brasileira de Informática',
+        theme_color: '#2563eb', // Azul do Tailwind
+        background_color: '#f8fafc', // Fundo Slate-50
+        display: 'standalone', // Faz abrir em tela cheia, parecendo um programa nativo (.exe / .apk)
         icons: [
           {
             src: 'pwa-192x192.png',
@@ -31,23 +29,8 @@ export default defineConfig({
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,json}'],
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'google-fonts-cache',
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365
-              },
-              cacheableResponse: {
-                statuses: [0, 200]
-              }
-            }
-          }
-        ]
+        // A MAGIA ACONTECE AQUI: Guarda TUDO (js, css, html, json do banco de dados) para rodar offline
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,json,woff,woff2}']
       }
     })
   ],
