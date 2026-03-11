@@ -48,9 +48,18 @@ Para aumentar o engajamento dos alunos do Ensino Fundamental, a Arena OBI incorp
 
 * **Senso de Progresso:** A acumulação de balões atua como um marcador visual de progresso e conquista, estimulando a continuidade no fluxo do jogo (Game Loop) sem a necessidade de um placar numérico tradicional.
 
+### 🔒 Área Restrita e Gerenciamento Descentralizado
+Para viabilizar a adição de novas questões oficiais ao banco de dados sem exigir recompilação do código, foi implementada uma rota administrativa.
+
+* **Segurança:** Acesso protegido por credenciais hardcoded, garantindo que alunos não manipulem os cenários de prova durante a maratona.
+
+* **Arquitetura Híbrida (Pendrive Virtual):** O Painel do Professor permite exportar e importar o arquivo do banco de dados (JSON) fisicamente via upload para atualização de máquinas sem rede (LAN-less), ou sincronizar via requisição `fetch` de um repositório centralizado caso haja conectividade (WAN).
+
 **Como executar localmente:**
 \`\`\`bash
+
 npm install
 
 npm run dev
+
 \`\`\`
