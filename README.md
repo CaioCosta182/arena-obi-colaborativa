@@ -55,6 +55,17 @@ Para viabilizar a adição de novas questões oficiais ao banco de dados sem exi
 
 * **Arquitetura Híbrida (Pendrive Virtual):** O Painel do Professor permite exportar e importar o arquivo do banco de dados (JSON) fisicamente via upload para atualização de máquinas sem rede (LAN-less), ou sincronizar via requisição `fetch` de um repositório centralizado caso haja conectividade (WAN).
 
+### 🔬 Coleta de Dados para Pesquisa CSCL
+A ferramenta atua como um instrumento de pesquisa acadêmica, capturando métricas granulares do comportamento dos alunos em pares (Pair Programming) e compactando-as no payload do QR Code:
+
+* **Complexidade (Block Count):** Quantidade de blocos lógicos instanciados, permitindo avaliar a elegância e eficiência da solução (ex: força bruta vs. modularização).
+
+* **Tentativas de Execução:** Diferencia perfis de programação por tentativa-e-erro (altos testes) de perfis analíticos.
+
+* **Sobrecarga Cognitiva (Swaps by Time):** Contabiliza estouros do cronômetro de revezamento, mapeando quais lógicas exigiram maior tempo de debate colaborativo.
+
+* **Métricas Clássicas:** Tempo total, erros de submissão (WA) e completude do nível.
+
 **Como executar localmente:**
 \`\`\`bash
 

@@ -21,28 +21,39 @@ const toolboxInfo = {
   ],
 };
 
+// NOVA MÉTRICA: blocos
+export interface MetricasQuestao {
+  erros: number;
+  tempo: number;
+  testes: number;
+  trocasTempo: number;
+  blocos: number; 
+}
+
 interface WorkspaceProps {
   questao: QuestaoOBI;
   onVoltar: () => void;
-  onProxima: (erros: number, tempoGasto: number) => void;
+  onProxima: (metricas: MetricasQuestao) => void;
   progresso: string;
-  baloes: number; // RECEBENDO OS BALÕES AQUI
+  baloes: number;
 }
 
-const TEMPO_TURNO = 600;
+const TEMPO_TURNO = 600; 
 
 export default function BlocklyWorkspace({ questao, onVoltar, onProxima, progresso, baloes }: WorkspaceProps) {
   const blocklyDiv = useRef<HTMLDivElement>(null);
   const workspace = useRef<Blockly.WorkspaceSvg | null>(null);
   const [feedback, setFeedback] = useState<string>('');
   const [acertou, setAcertou] = useState<boolean>(false);
-
+  
   const [tempoRestante, setTempoRestante] = useState<number>(TEMPO_TURNO);
   const [pilotoAtual, setPilotoAtual] = useState<number>(1);
   const [motivoTroca, setMotivoTroca] = useState<'tempo' | 'acerto' | null>(null);
 
   const [erros, setErros] = useState<number>(0);
   const [tempoGasto, setTempoGasto] = useState<number>(0);
+  const [testesFeitos, setTestesFeitos] = useState<number>(0);
+  const [trocasTempo, setTrocasTempo] = useState<number>(0);
 
   useEffect(() => {
     if (blocklyDiv.current && !workspace.current) {
@@ -74,6 +85,8 @@ export default function BlocklyWorkspace({ questao, onVoltar, onProxima, progres
     setAcertou(false);
     setErros(0);
     setTempoGasto(0);
+    setTestesFeitos(0);
+    setTrocasTempo(0);
     if (workspace.current) {
       workspace.current.clear();
     }
@@ -81,11 +94,13 @@ export default function BlocklyWorkspace({ questao, onVoltar, onProxima, progres
 
   const handleTestarCodigo = () => {
     if (!workspace.current) return;
+    setTestesFeitos(prev => prev + 1);
+    
     const code = javascriptGenerator.workspaceToCode(workspace.current);
     setFeedback('A processar no Juiz...');
 
     const worker = new Worker(new URL('../workers/judgeWorker.ts', import.meta.url), { type: 'module' });
-
+    
     const timeoutId = setTimeout(() => {
       worker.terminate();
       setFeedback('⏳ Tempo Esgotado! Cuidado com ciclos infinitos.');
@@ -96,12 +111,12 @@ export default function BlocklyWorkspace({ questao, onVoltar, onProxima, progres
       clearTimeout(timeoutId);
       setFeedback(e.data.message);
       if (e.data.status === 'AC') {
-        setAcertou(true);
+        setAcertou(true); 
       } else {
         setAcertou(false);
         setErros(err => err + 1);
       }
-      worker.terminate();
+      worker.terminate(); 
     };
 
     worker.onerror = () => {
@@ -117,9 +132,22 @@ export default function BlocklyWorkspace({ questao, onVoltar, onProxima, progres
   const handleConfirmarTroca = () => {
     setPilotoAtual(prev => prev === 1 ? 2 : 1);
     setTempoRestante(TEMPO_TURNO);
-
+    
+    if (motivoTroca === 'tempo') {
+      setTrocasTempo(prev => prev + 1);
+    }
+    
     if (motivoTroca === 'acerto') {
-      onProxima(erros, tempoGasto);
+      // CAPTURA A QUANTIDADE DE BLOCOS NA TELA NO MOMENTO DA VITÓRIA
+      const blocosUsados = workspace.current ? workspace.current.getAllBlocks(false).length : 0;
+      
+      onProxima({
+        erros,
+        tempo: tempoGasto,
+        testes: testesFeitos,
+        trocasTempo,
+        blocos: blocosUsados
+      });
     }
     setMotivoTroca(null);
   };
@@ -142,11 +170,11 @@ export default function BlocklyWorkspace({ questao, onVoltar, onProxima, progres
               {motivoTroca === 'tempo' ? 'Tempo Esgotado!' : 'Desafio Concluído!'}
             </h2>
             <p className="mb-6 text-lg text-slate-600">
-              {motivoTroca === 'tempo'
+              {motivoTroca === 'tempo' 
                 ? 'Os 10 minutos acabaram! É altura de trocarem de papéis.'
-                : 'Excelente trabalho de equipe! Troquem de lugar para passar ao próximo desafio.'}
+                : 'Excelente trabalho de equipa! Troquem de lugar para passar ao próximo desafio.'}
             </p>
-            <button
+            <button 
               onClick={handleConfirmarTroca}
               className="w-full cursor-pointer rounded-xl bg-indigo-600 px-6 py-4 text-xl font-bold text-white shadow-lg transition-transform hover:scale-105 hover:bg-indigo-700 active:scale-95"
             >
@@ -165,15 +193,9 @@ export default function BlocklyWorkspace({ questao, onVoltar, onProxima, progres
           <p className="text-sm text-blue-800">{questao.descricao}</p>
         </div>
 
-        {/* --- ÁREA DOS BALÕES DA MARATONA --- */}
         <div className="flex gap-2 mx-6 min-w-[80px]">
           {Array.from({ length: baloes }).map((_, i) => (
-            <div
-              key={i}
-              className="text-3xl drop-shadow-lg animate-bounce"
-              style={{ animationDelay: `${i * 0.1}s` }}
-              title={`Balão da Questão ${i + 1}`}
-            >
+            <div key={i} className="text-3xl drop-shadow-lg animate-bounce" style={{ animationDelay: `${i * 0.1}s` }} title={`Balão da Questão ${i + 1}`}>
               🎈
             </div>
           ))}
@@ -194,14 +216,14 @@ export default function BlocklyWorkspace({ questao, onVoltar, onProxima, progres
           Sair
         </button>
       </div>
-
+      
       <div ref={blocklyDiv} className="relative w-full flex-1" />
-
+      
       <div className="flex items-center justify-between border-t border-slate-300 bg-slate-100 p-4">
         <div className="max-w-[70%] text-lg font-bold text-slate-700">
           Juiz Offline: <span className={feedback.includes('🎉') ? 'text-green-600' : 'text-red-500'}>{feedback}</span>
         </div>
-
+        
         {acertou ? (
           <button onClick={() => setMotivoTroca('acerto')} className="cursor-pointer rounded-lg bg-blue-600 px-8 py-3 font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-blue-700 active:scale-95 animate-pulse">
             Próxima Questão ⏭️
