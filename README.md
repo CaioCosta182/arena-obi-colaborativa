@@ -80,6 +80,15 @@ Para maximizar o engajamento e incentivar a escrita de códigos eficientes (redu
 * **Títulos de Honra:** No pódio final, a soma da performance garante títulos dinâmicos à dupla (ex: "Deuses do Código" para perfeição absoluta, "Lendas do Código", "Guerreiros", etc.).
 * **Imersão CSCL:** O painel de Pair Programming (revezamento) e os alertas de estouro de tempo agora utilizam os nomes reais dos alunos cadastrados, aumentando a responsabilidade individual no processo colaborativo.
 
+### 📊 Feedback Pedagógico e Métricas Individuais
+Para enriquecer a análise do comportamento CSCL (Computer-Supported Collaborative Learning), o pódio final foi expandido para atuar como um *dashboard* de resultados da dupla:
+* **Rastreabilidade de Erros por Piloto:** O sistema monitoriza quem estava com o "teclado" no momento de uma submissão falha (WA), exibindo um placar individual (ex: Piloto 1: 2 erros | Piloto 2: 0 erros). Isso ajuda a identificar desequilíbrios na colaboração.
+* **Heurística de Complexidade (Block Count):** O sistema calcula a média de blocos utilizados por questão. Se a média for alta, emite um feedback pedagógico sugerindo o uso de laços de repetição ou otimização matemática, fechando o ciclo de aprendizagem.
+
+* **Vitrine de Inventário:** Exibição clara de todo o *loot* conquistado (nome, ícone e raridade), valorizando o esforço da dupla e o Game Design da plataforma.
+
+* **UX/UI Aprimorada:** Implementação de tooltips customizados (*Hover*) no header da Arena para visualização rápida dos status dos equipamentos em tempo real.
+
 **Como executar localmente:**
 \`\`\`bash
 

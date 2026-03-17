@@ -22,7 +22,8 @@ const toolboxInfo = {
 };
 
 export interface MetricasQuestao {
-  erros: number;
+  errosP1: number;
+  errosP2: number;
   tempo: number;
   testes: number;
   trocasTempo: number;
@@ -56,10 +57,14 @@ export default function BlocklyWorkspace({ questao, onVoltar, onProxima, progres
   const [pilotoAtual, setPilotoAtual] = useState<number>(1);
   const [motivoTroca, setMotivoTroca] = useState<'tempo' | 'acerto' | null>(null);
 
-  const [erros, setErros] = useState<number>(0);
+  const [errosP1, setErrosP1] = useState<number>(0);
+  const [errosP2, setErrosP2] = useState<number>(0);
+  
   const [tempoGasto, setTempoGasto] = useState<number>(0);
   const [testesFeitos, setTestesFeitos] = useState<number>(0);
   const [trocasTempo, setTrocasTempo] = useState<number>(0);
+
+  const errosTotaisQuestao = errosP1 + errosP2;
 
   useEffect(() => {
     if (blocklyDiv.current && !workspace.current) {
@@ -89,7 +94,8 @@ export default function BlocklyWorkspace({ questao, onVoltar, onProxima, progres
   useEffect(() => {
     setFeedback('');
     setAcertou(false);
-    setErros(0);
+    setErrosP1(0);
+    setErrosP2(0);
     setTempoGasto(0);
     setTestesFeitos(0);
     setTrocasTempo(0);
@@ -110,7 +116,7 @@ export default function BlocklyWorkspace({ questao, onVoltar, onProxima, progres
     const timeoutId = setTimeout(() => {
       worker.terminate();
       setFeedback('⏳ Tempo Esgotado! Cuidado com ciclos infinitos.');
-      setErros(e => e + 1);
+      pilotoAtual === 1 ? setErrosP1(e => e + 1) : setErrosP2(e => e + 1);
     }, 2000);
 
     worker.onmessage = (e) => {
@@ -120,7 +126,7 @@ export default function BlocklyWorkspace({ questao, onVoltar, onProxima, progres
         setAcertou(true); 
       } else {
         setAcertou(false);
-        setErros(err => err + 1);
+        pilotoAtual === 1 ? setErrosP1(err => err + 1) : setErrosP2(err => err + 1);
       }
       worker.terminate(); 
     };
@@ -128,7 +134,7 @@ export default function BlocklyWorkspace({ questao, onVoltar, onProxima, progres
     worker.onerror = () => {
       clearTimeout(timeoutId);
       setFeedback('⚠️ Erro crítico.');
-      setErros(err => err + 1);
+      pilotoAtual === 1 ? setErrosP1(err => err + 1) : setErrosP2(err => err + 1);
       worker.terminate();
     };
 
@@ -143,7 +149,7 @@ export default function BlocklyWorkspace({ questao, onVoltar, onProxima, progres
     
     if (motivoTroca === 'acerto') {
       const blocosUsados = workspace.current ? workspace.current.getAllBlocks(false).length : 0;
-      onProxima({ erros, tempo: tempoGasto, testes: testesFeitos, trocasTempo, blocos: blocosUsados });
+      onProxima({ errosP1, errosP2, tempo: tempoGasto, testes: testesFeitos, trocasTempo, blocos: blocosUsados });
     }
     setMotivoTroca(null);
   };
@@ -163,15 +169,15 @@ export default function BlocklyWorkspace({ questao, onVoltar, onProxima, progres
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm">
           <div className="flex max-w-md flex-col items-center rounded-2xl bg-white p-8 text-center shadow-2xl">
             <div className={`mb-4 text-6xl ${motivoTroca === 'tempo' ? 'animate-spin' : 'animate-bounce'}`}>
-              {motivoTroca === 'tempo' ? '⏳' : (erros === 0 ? '✨' : '🏆')}
+              {motivoTroca === 'tempo' ? '⏳' : (errosTotaisQuestao === 0 ? '✨' : '🏆')}
             </div>
             <h2 className="mb-2 text-3xl font-extrabold text-slate-800">
-              {motivoTroca === 'tempo' ? 'Tempo Esgotado!' : (erros === 0 ? 'Acerto Perfeito!' : 'Desafio Concluído!')}
+              {motivoTroca === 'tempo' ? 'Tempo Esgotado!' : (errosTotaisQuestao === 0 ? 'Acerto Perfeito!' : 'Desafio Concluído!')}
             </h2>
             <p className="mb-6 text-lg text-slate-600">
               {motivoTroca === 'tempo' 
                 ? `Os 10 minutos de ${nomePilotoQueSai} acabaram! É a vez de ${nomePilotoQueEntra} assumir os controles.`
-                : (erros === 0 
+                : (errosTotaisQuestao === 0 
                     ? `Incrível, ${pilotos.p1} e ${pilotos.p2}! Resolução de primeira. Vocês garantiram um equipamento LENDÁRIO!`
                     : `Bom trabalho, dupla! Cliquem para resgatar o loot e passar o controle para ${nomePilotoQueEntra}.`)}
             </p>
@@ -191,11 +197,11 @@ export default function BlocklyWorkspace({ questao, onVoltar, onProxima, progres
           <p className="text-sm text-blue-800">{questao.descricao}</p>
         </div>
 
+        {/* AVATAR CORRIGIDO: Tooltips Customizados e Estilizados voltaram! */}
         <div className="mx-6 flex flex-col items-center rounded-xl bg-white p-2 shadow-sm border border-slate-200 min-w-[120px]">
           <span className="text-[10px] font-bold uppercase text-slate-400 mb-1">Avatar da Dupla</span>
           <div className="flex gap-2 text-2xl">
             
-            {/* AVATAR BASE COM TOOLTIP */}
             <div className="relative group cursor-help">
               <span>🧍</span>
               <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 flex flex-col items-center w-max bg-slate-800 text-white px-2 py-1 rounded shadow-lg">
@@ -203,7 +209,6 @@ export default function BlocklyWorkspace({ questao, onVoltar, onProxima, progres
               </div>
             </div>
 
-            {/* EQUIPAMENTOS COM TOOLTIP ESTILIZADO */}
             {inventario.map((item, i) => {
               const glow = item.tier === 'L' ? 'drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]' : item.tier === 'E' ? 'drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]' : '';
               const tierName = item.tier === 'L' ? 'Lendário' : item.tier === 'E' ? 'Épico' : item.tier === 'R' ? 'Raro' : item.tier === 'U' ? 'Incomum' : 'Comum';
@@ -212,7 +217,7 @@ export default function BlocklyWorkspace({ questao, onVoltar, onProxima, progres
               return (
                 <div key={i} className="relative group cursor-help">
                   <span className={glow}>{item.emoji}</span>
-                  {/* BALÃO DO TOOLTIP */}
+                  {/* O BALÃO DO TOOLTIP GAMER VOLTOU */}
                   <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 flex flex-col items-center w-max bg-slate-800 text-white px-3 py-1.5 rounded-lg shadow-xl border border-slate-700">
                     <span className="text-sm font-bold leading-tight">{item.nome}</span>
                     <span className={`text-[10px] uppercase tracking-wider font-bold ${tierColor}`}>{tierName}</span>

@@ -24,7 +24,7 @@ export default function App() {
   const [indiceAtual, setIndiceAtual] = useState<number>(0);
   
   const [metricasGlobais, setMetricasGlobais] = useState({ 
-    errosTotais: 0, tempoTotal: 0, testesTotais: 0, trocasTempoTotais: 0, blocosTotais: 0, granular: [] as any[] 
+    errosP1Totais: 0, errosP2Totais: 0, tempoTotal: 0, testesTotais: 0, trocasTempoTotais: 0, blocosTotais: 0, granular: [] as any[] 
   });
 
   const [inventario, setInventario] = useState<Equipamento[]>([]);
@@ -50,7 +50,7 @@ export default function App() {
     const embaralhadas = [...questoesDoNivel].sort(() => Math.random() - 0.5);
     setQuestoesSessao(embaralhadas);
     setIndiceAtual(0);
-    setMetricasGlobais({ errosTotais: 0, tempoTotal: 0, testesTotais: 0, trocasTempoTotais: 0, blocosTotais: 0, granular: [] });
+    setMetricasGlobais({ errosP1Totais: 0, errosP2Totais: 0, tempoTotal: 0, testesTotais: 0, trocasTempoTotais: 0, blocosTotais: 0, granular: [] });
     setInventario([]); 
     setTelaAtual('arena');
   };
@@ -102,14 +102,18 @@ export default function App() {
   };
 
   const avancarQuestao = (m: MetricasQuestao) => {
-    const novoItem = gerarEquipamento(m.erros, indiceAtual);
+    const errosTotaisQuestao = m.errosP1 + m.errosP2;
+    const novoItem = gerarEquipamento(errosTotaisQuestao, indiceAtual);
     setInventario(prev => [...prev, novoItem]);
 
     setMetricasGlobais(prev => ({
-      errosTotais: prev.errosTotais + m.erros, tempoTotal: prev.tempoTotal + m.tempo,
-      testesTotais: prev.testesTotais + m.testes, trocasTempoTotais: prev.trocasTempoTotais + m.trocasTempo,
+      errosP1Totais: prev.errosP1Totais + m.errosP1,
+      errosP2Totais: prev.errosP2Totais + m.errosP2,
+      tempoTotal: prev.tempoTotal + m.tempo,
+      testesTotais: prev.testesTotais + m.testes, 
+      trocasTempoTotais: prev.trocasTempoTotais + m.trocasTempo,
       blocosTotais: prev.blocosTotais + m.blocos,
-      granular: [...prev.granular, { id: questoesSessao[indiceAtual].id, err: m.erros, t: m.tempo, test: m.testes, sw_t: m.trocasTempo, blk: m.blocos }]
+      granular: [...prev.granular, { id: questoesSessao[indiceAtual].id, err: errosTotaisQuestao, t: m.tempo, test: m.testes, sw_t: m.trocasTempo, blk: m.blocos }]
     }));
 
     if (indiceAtual + 1 < questoesSessao.length) setIndiceAtual(prev => prev + 1);
@@ -188,75 +192,105 @@ export default function App() {
   }
 
   if (telaAtual === 'podio') {
-    const dadosQR = JSON.stringify({ p1: pilotos.p1, p2: pilotos.p2, lvl: questoesSessao[0].nivel, t_seg: metricasGlobais.tempoTotal, err: metricasGlobais.errosTotais, test: metricasGlobais.testesTotais, sw_t: metricasGlobais.trocasTempoTotais, blk: metricasGlobais.blocosTotais, q: metricasGlobais.granular });
+    const totalErros = metricasGlobais.errosP1Totais + metricasGlobais.errosP2Totais;
+    const dadosQR = JSON.stringify({ 
+      p1: pilotos.p1, p2: pilotos.p2, 
+      lvl: questoesSessao[0].nivel, 
+      t_seg: metricasGlobais.tempoTotal, 
+      err: totalErros, 
+      err_p: [metricasGlobais.errosP1Totais, metricasGlobais.errosP2Totais],
+      test: metricasGlobais.testesTotais, 
+      sw_t: metricasGlobais.trocasTempoTotais, 
+      blk: metricasGlobais.blocosTotais, 
+      q: metricasGlobais.granular 
+    });
     
     let tituloMestre = "Aventureiros do Código";
     let corTitulo = "text-slate-500";
     
-    if (metricasGlobais.errosTotais === 0) {
+    if (totalErros === 0) {
       tituloMestre = "👑 DEUSES DO CÓDIGO 👑";
       corTitulo = "text-yellow-500 drop-shadow-[0_0_10px_rgba(234,179,8,0.5)]";
-    } else if (metricasGlobais.errosTotais <= 2) {
+    } else if (totalErros <= 2) {
       tituloMestre = "🌟 LENDAS DO CÓDIGO 🌟";
       corTitulo = "text-purple-600 drop-shadow-[0_0_8px_rgba(147,51,234,0.5)]";
-    } else if (metricasGlobais.errosTotais <= 5) {
+    } else if (totalErros <= 5) {
       tituloMestre = "⚔️ GUERREIROS DO CÓDIGO ⚔️";
       corTitulo = "text-blue-600";
     }
 
+    const mediaBlocos = metricasGlobais.blocosTotais / questoesSessao.length;
+    let feedbackBlocos = "Excelente otimização! Vocês conseguiram criar um código enxuto e direto.";
+    let corFeedbackBlocos = "text-emerald-600";
+    if (mediaBlocos >= 7) {
+      feedbackBlocos = "Dica: É possível melhorar! Tente usar menos blocos combinando operações matemáticas ou usando laços de repetição (Loops).";
+      corFeedbackBlocos = "text-orange-500";
+    }
+
     return (
       <div className="flex h-screen items-center justify-center bg-slate-800 p-4">
-        <div className="flex w-full max-w-4xl overflow-hidden rounded-3xl bg-white shadow-2xl">
-          <div className="flex flex-col items-center justify-center bg-blue-50 p-10 w-1/2 border-r border-blue-100">
+        <div className="flex w-full max-w-5xl overflow-hidden rounded-3xl bg-white shadow-2xl">
+          <div className="flex flex-col items-center justify-center bg-blue-50 p-10 w-5/12 border-r border-blue-100">
             <h3 className="mb-6 text-xl font-bold text-blue-900 text-center">Mostrem isto ao Professor! 📱</h3>
             <div className="rounded-xl border-4 border-white shadow-md bg-white p-2">
               <QRCodeSVG value={dadosQR} size={220} level="M" />
             </div>
             <p className="mt-4 text-xs font-mono text-slate-500 text-center max-w-[200px] break-words">Dados de pesquisa CSCL gerados</p>
           </div>
-          <div className="p-10 w-1/2 flex flex-col justify-center">
+          
+          <div className="p-8 w-7/12 flex flex-col justify-center bg-white overflow-y-auto">
             
             <div className="text-center mb-6">
-              <div className="text-5xl mb-4 flex justify-center gap-4">
-                
-                {/* TOOLTIPS NO PÓDIO */}
-                <div className="relative group cursor-help">
-                  <span>🧍</span>
-                  <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 flex flex-col items-center w-max bg-slate-800 text-white px-3 py-1.5 rounded-lg shadow-xl border border-slate-700">
-                    <span className="text-sm font-bold text-slate-300">Iniciante</span>
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
-                  </div>
-                </div>
+              <h1 className={`text-3xl font-extrabold mb-1 uppercase tracking-widest ${corTitulo}`}>{tituloMestre}</h1>
+              <p className="text-slate-600"><span className="font-bold text-indigo-600">{pilotos.p1}</span> e <span className="font-bold text-indigo-600">{pilotos.p2}</span> finalizaram a run!</p>
+            </div>
 
+            <div className="mb-6">
+              <h4 className="font-bold text-slate-400 mb-2 uppercase text-xs tracking-wider border-b pb-1">Inventário Conquistado</h4>
+              <div className="flex flex-wrap gap-2">
                 {inventario.map((item, i) => {
-                  const glow = item.tier === 'L' ? 'drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]' : item.tier === 'E' ? 'drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]' : '';
+                  const tierColor = item.tier === 'L' ? 'text-yellow-600' : item.tier === 'E' ? 'text-purple-600' : item.tier === 'R' ? 'text-blue-600' : item.tier === 'U' ? 'text-green-600' : 'text-slate-500';
+                  const tierBg = item.tier === 'L' ? 'bg-yellow-50 border-yellow-200' : item.tier === 'E' ? 'bg-purple-50 border-purple-200' : item.tier === 'R' ? 'bg-blue-50 border-blue-200' : item.tier === 'U' ? 'bg-green-50 border-green-200' : 'bg-slate-100 border-slate-200';
                   const tierName = item.tier === 'L' ? 'Lendário' : item.tier === 'E' ? 'Épico' : item.tier === 'R' ? 'Raro' : item.tier === 'U' ? 'Incomum' : 'Comum';
-                  const tierColor = item.tier === 'L' ? 'text-yellow-400' : item.tier === 'E' ? 'text-purple-400' : item.tier === 'R' ? 'text-blue-400' : item.tier === 'U' ? 'text-green-400' : 'text-slate-400';
-                  
                   return (
-                    <div key={i} className="relative group cursor-help">
-                      <span className={glow}>{item.emoji}</span>
-                      <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 flex flex-col items-center w-max bg-slate-800 text-white px-4 py-2 rounded-xl shadow-2xl border border-slate-700">
-                        <span className="text-base font-bold leading-tight">{item.nome}</span>
-                        <span className={`text-xs uppercase tracking-wider font-extrabold ${tierColor}`}>{tierName}</span>
-                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
+                    <div key={i} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border ${tierBg} flex-1 min-w-[140px]`}>
+                      <span className="text-xl">{item.emoji}</span>
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold text-slate-800 leading-tight">{item.nome}</span>
+                        <span className={`text-[9px] uppercase font-extrabold tracking-wider ${tierColor}`}>{tierName}</span>
                       </div>
                     </div>
                   );
                 })}
-
               </div>
-              <h1 className={`text-3xl font-extrabold mb-1 uppercase tracking-widest ${corTitulo}`}>{tituloMestre}</h1>
-              <p className="text-slate-600"><span className="font-bold text-indigo-600">{pilotos.p1}</span> e <span className="font-bold text-indigo-600">{pilotos.p2}</span> finalizaram a run!</p>
             </div>
             
             <div className="space-y-3 mb-6 text-sm bg-slate-50 p-4 rounded-xl border border-slate-200">
-              <div className="flex justify-between border-b pb-2"><span className="text-slate-500">Blocos Utilizados (Complexidade):</span><span className="font-bold text-purple-600">{metricasGlobais.blocosTotais}</span></div>
-              <div className="flex justify-between border-b pb-2"><span className="text-slate-500">Tentativas (Testes):</span><span className="font-bold text-slate-800">{metricasGlobais.testesTotais}</span></div>
-              <div className="flex justify-between border-b pb-2"><span className="text-slate-500">Erros (WA):</span><span className="font-bold text-red-500">{metricasGlobais.errosTotais}</span></div>
+              
+              <div className="flex flex-col border-b pb-2">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Complexidade do Código:</span>
+                  <span className="font-bold text-purple-600">{metricasGlobais.blocosTotais} Blocos Usados</span>
+                </div>
+                <span className={`text-xs mt-1 italic ${corFeedbackBlocos}`}>{feedbackBlocos}</span>
+              </div>
+
+              <div className="flex flex-col border-b pb-2">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Erros de Submissão (WA):</span>
+                  <span className="font-bold text-red-500">Total: {totalErros}</span>
+                </div>
+                <div className="flex justify-end gap-2 text-xs font-mono mt-1 text-slate-400">
+                  <span className={metricasGlobais.errosP1Totais > 0 ? "text-red-400 font-bold" : ""}>{pilotos.p1}: {metricasGlobais.errosP1Totais}</span> | 
+                  <span className={metricasGlobais.errosP2Totais > 0 ? "text-red-400 font-bold" : ""}>{pilotos.p2}: {metricasGlobais.errosP2Totais}</span>
+                </div>
+              </div>
+
+              <div className="flex justify-between border-b pb-2"><span className="text-slate-500">Tentativas Rápidas (Testes):</span><span className="font-bold text-slate-800">{metricasGlobais.testesTotais}</span></div>
               <div className="flex justify-between"><span className="text-slate-500">Tempo de Resolução:</span><span className="font-bold text-emerald-600">{formatarTempo(metricasGlobais.tempoTotal)}</span></div>
             </div>
-            <button onClick={() => { setPilotos({ p1: '', p2: '' }); setTelaAtual('home'); }} className="w-full rounded-xl bg-slate-800 py-4 font-bold text-white transition-transform hover:bg-slate-900 active:scale-95">Nova Sessão</button>
+
+            <button onClick={() => { setPilotos({ p1: '', p2: '' }); setTelaAtual('home'); }} className="w-full rounded-xl bg-slate-800 py-3 font-bold text-white transition-transform hover:bg-slate-900 active:scale-95">Nova Sessão</button>
           </div>
         </div>
       </div>
