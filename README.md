@@ -94,7 +94,7 @@ Para transformar a ferramenta numa plataforma completa de gestão de competiçõ
 
 * **Backend as a Service (BaaS):** Integração com o Firebase Firestore para garantir o envio e a leitura de métricas em tempo real (Realtime Database).
 
-* **Scanner de Bolso (Admin):** O Painel do Professor foi expandido com um leitor nativo de QR Code (via `html5-qrcode`). O professor utiliza a câmara do próprio smartphone para ler o ecrã dos alunos no laboratório.
+* **Scanner de Bolso (Admin):** O Painel do Professor foi expandido com um leitor nativo de QR Code (via `html5-qrcode`). O professor utiliza a câmera do próprio smartphone para ler o ecrã dos alunos no laboratório.
 
 * **Sincronização Invisível:** Ao efetuar a leitura, o JSON da pesquisa CSCL é descodificado e enviado silenciosamente para a nuvem, mantendo o laboratório offline, mas alimentando o ecrã do auditório com dados precisos.
 
@@ -103,6 +103,15 @@ Para transformar a ferramenta numa plataforma completa de gestão de competiçõ
 * **Otimização Mobile:** O módulo de recolha via câmara (`html5-qrcode`) foi ajustado para contornar o ciclo de vida rigoroso do React 18 (Strict Mode), garantindo a abertura estável e a priorização automática da câmara traseira nos smartphones dos professores.
 
 * **Arquitetura Híbrida (Online/Offline):** O Painel de Administração garante resiliência total. Se não houver internet para usar o Scanner Firebase, o professor pode regressar à aba de Sincronização e utilizar o fallback 100% offline (Importação/Exportação do Banco via ficheiros JSON gerados por Blobs).
+
+### 📺 Placar ao Vivo (Telão do Auditório)
+Para simular a experiência de grandes competições de programação, a plataforma inclui um ecrã dedicado para projeção:
+
+* **Sincronização em Tempo Real:** Conectado ao Firebase (Realtime Listener), o ranking é atualizado instantaneamente no telão sempre que o professor escaneia o resultado de uma dupla no laboratório, sem necessidade de recarregar a página.
+
+* **Critérios Oficiais (OBI/ICPC):** A tabela de classificação aplica automaticamente as regras de desempate oficiais: primeiro ordena por menor número de erros de submissão (WA) e, em caso de empate, pelo menor tempo de resolução.
+
+* **Gamificação Visível:** O placar exibe os Títulos RPG conquistados pelas equipas (ex: "Deuses do Código", "Guerreiros"), celebrando o acerto de primeira e o trabalho de equipa em tempo real.
 
 **Como executar localmente:**
 \`\`\`bash
