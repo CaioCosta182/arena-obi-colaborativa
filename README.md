@@ -89,6 +89,15 @@ Para enriquecer a análise do comportamento CSCL (Computer-Supported Collaborati
 
 * **UX/UI Aprimorada:** Implementação de tooltips customizados (*Hover*) no header da Arena para visualização rápida dos status dos equipamentos em tempo real.
 
+### ☁️ Módulo de Evento e Sincronização em Tempo Real (Firebase)
+Para transformar a ferramenta numa plataforma completa de gestão de competições (estilo OBI/ICPC), foi implementado um módulo de sincronização na nuvem para recolha de dados e exibição de resultados em auditório:
+
+* **Backend as a Service (BaaS):** Integração com o Firebase Firestore para garantir o envio e a leitura de métricas em tempo real (Realtime Database).
+
+* **Scanner de Bolso (Admin):** O Painel do Professor foi expandido com um leitor nativo de QR Code (via `html5-qrcode`). O professor utiliza a câmara do próprio smartphone para ler o ecrã dos alunos no laboratório.
+
+* **Sincronização Invisível:** Ao efetuar a leitura, o JSON da pesquisa CSCL é descodificado e enviado silenciosamente para a nuvem, mantendo o laboratório offline, mas alimentando o ecrã do auditório com dados precisos.
+
 **Como executar localmente:**
 \`\`\`bash
 
