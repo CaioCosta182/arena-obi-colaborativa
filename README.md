@@ -98,6 +98,12 @@ Para transformar a ferramenta numa plataforma completa de gestão de competiçõ
 
 * **Sincronização Invisível:** Ao efetuar a leitura, o JSON da pesquisa CSCL é descodificado e enviado silenciosamente para a nuvem, mantendo o laboratório offline, mas alimentando o ecrã do auditório com dados precisos.
 
+### 📱 Compatibilidade de Hardware e Resiliência
+
+* **Otimização Mobile:** O módulo de recolha via câmara (`html5-qrcode`) foi ajustado para contornar o ciclo de vida rigoroso do React 18 (Strict Mode), garantindo a abertura estável e a priorização automática da câmara traseira nos smartphones dos professores.
+
+* **Arquitetura Híbrida (Online/Offline):** O Painel de Administração garante resiliência total. Se não houver internet para usar o Scanner Firebase, o professor pode regressar à aba de Sincronização e utilizar o fallback 100% offline (Importação/Exportação do Banco via ficheiros JSON gerados por Blobs).
+
 **Como executar localmente:**
 \`\`\`bash
 
