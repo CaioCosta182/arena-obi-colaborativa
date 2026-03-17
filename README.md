@@ -66,6 +66,20 @@ A ferramenta atua como um instrumento de pesquisa acadêmica, capturando métric
 
 * **Métricas Clássicas:** Tempo total, erros de submissão (WA) e completude do nível.
 
+### ⚔️ Gamificação RPG: Avatar Evolutivo e Sistema de Loot
+Para maximizar o engajamento e incentivar a escrita de códigos eficientes (reduzindo a tentativa e erro cega), a plataforma adota mecânicas de RPG clássicas:
+
+* **Inventário Dinâmico:** A dupla é representada por um avatar que começa com vestimentas simples. A cada questão concluída, eles conquistam um novo equipamento (Arma, Armadura, Botas, Elmo e Escudo).
+
+* **Raridade baseada em Performance:** O sistema avalia a quantidade de submissões falhas (WA) para determinar o *Tier* do item ganho na questão:
+
+  * **Lendário** (0 Erros) / **Épico** (1 Erro) / **Raro** (2 Erros) / **Incomum** (3 Erros) / **Comum/Sucata** (4+ Erros).
+
+* **Tooltips Interativos:** Passar o cursor sobre os itens do inventário revela o nome do equipamento e a sua raridade, utilizando cores padronizadas de game design.
+
+* **Títulos de Honra:** No pódio final, a soma da performance garante títulos dinâmicos à dupla (ex: "Deuses do Código" para perfeição absoluta, "Lendas do Código", "Guerreiros", etc.).
+* **Imersão CSCL:** O painel de Pair Programming (revezamento) e os alertas de estouro de tempo agora utilizam os nomes reais dos alunos cadastrados, aumentando a responsabilidade individual no processo colaborativo.
+
 **Como executar localmente:**
 \`\`\`bash
 
