@@ -6,12 +6,10 @@ export default function Leaderboard({ onVoltar }: { onVoltar: () => void }) {
   const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
-    // Liga o "ouvido" ao Firebase. Qualquer QR Code lido pelo professor atualiza isto na hora!
     const cancelarEscuta = escutarRankingTempoReal((dados) => {
       setRanking(dados);
       setCarregando(false);
     });
-
     return () => cancelarEscuta();
   }, []);
 
@@ -28,10 +26,63 @@ export default function Leaderboard({ onVoltar }: { onVoltar: () => void }) {
     return { titulo: "🛡️ AVENTUREIROS", cor: "text-slate-400" };
   };
 
+  // FUNÇÃO MÁGICA PARA O TCC: GERAR CSV
+  const exportarCSV = () => {
+    if (ranking.length === 0) {
+      alert("Não há dados para exportar.");
+      return;
+    }
+
+    // Criação do cabeçalho das colunas do Excel
+    const cabecalho = [
+      "Posicao_Ranking", 
+      "Piloto_1", 
+      "Piloto_2", 
+      "Nivel_Dificuldade", 
+      "Tempo_Total_Segundos", 
+      "Erros_Totais", 
+      "Erros_Piloto_1", 
+      "Erros_Piloto_2", 
+      "Total_Testes_Offline", 
+      "Trocas_Por_Estouro_Tempo", 
+      "Complexidade_Total_Blocos",
+      "Detalhes_Por_Questao_JSON"
+    ].join(",");
+
+    // Extração dos dados de cada equipa
+    const linhas = ranking.map((eq, index) => {
+      // Substitui as vírgulas do JSON por ponto e vírgula para não quebrar as colunas do CSV
+      const detalhesQuestoes = JSON.stringify(eq.q || []).replace(/,/g, ";");
+      
+      return [
+        index + 1,
+        `"${eq.p1}"`,
+        `"${eq.p2}"`,
+        `"${eq.lvl}"`,
+        eq.t_seg,
+        eq.err,
+        eq.err_p[0],
+        eq.err_p[1],
+        eq.test,
+        eq.sw_t,
+        eq.blk,
+        `"${detalhesQuestoes}"`
+      ].join(",");
+    });
+
+    const csvContent = "data:text/csv;charset=utf-8," + [cabecalho, ...linhas].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "dados_pesquisa_cscl_arena.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="flex min-h-screen flex-col bg-slate-900 text-white font-sans overflow-hidden">
       
-      {/* CABEÇALHO ÉPICO PARA O PROJETOR */}
       <header className="relative flex items-center justify-between bg-slate-950 p-8 shadow-2xl border-b border-slate-800 z-10">
         <div className="flex items-center gap-4">
           <div className="text-5xl animate-pulse">🏆</div>
@@ -42,12 +93,19 @@ export default function Leaderboard({ onVoltar }: { onVoltar: () => void }) {
             <p className="text-slate-400 font-mono mt-1">Arena OBI Colaborativa • Transmissão ao Vivo</p>
           </div>
         </div>
-        <button onClick={onVoltar} className="cursor-pointer rounded-xl bg-slate-800 border border-slate-700 px-6 py-3 font-bold text-slate-300 hover:bg-slate-700 hover:text-white transition-all">
-          Sair do Telão
-        </button>
+        
+        <div className="flex gap-4">
+          {/* BOTÃO DE EXPORTAÇÃO PARA A PESQUISA */}
+          <button onClick={exportarCSV} className="cursor-pointer rounded-xl bg-emerald-600/20 border border-emerald-500/50 px-6 py-3 font-bold text-emerald-400 hover:bg-emerald-600 hover:text-white transition-all">
+            📊 Exportar Dados (.csv)
+          </button>
+          
+          <button onClick={onVoltar} className="cursor-pointer rounded-xl bg-slate-800 border border-slate-700 px-6 py-3 font-bold text-slate-300 hover:bg-slate-700 hover:text-white transition-all">
+            Sair do Telão
+          </button>
+        </div>
       </header>
 
-      {/* ÁREA DA TABELA */}
       <main className="flex-1 p-8 overflow-y-auto">
         <div className="max-w-6xl mx-auto">
           
@@ -64,7 +122,6 @@ export default function Leaderboard({ onVoltar }: { onVoltar: () => void }) {
             </div>
           ) : (
             <div className="flex flex-col gap-4">
-              {/* CABEÇALHO DA TABELA */}
               <div className="grid grid-cols-12 gap-4 px-6 py-3 text-xs font-black uppercase tracking-widest text-slate-500 border-b border-slate-700">
                 <div className="col-span-1 text-center">Posição</div>
                 <div className="col-span-4">Dupla de Pilotos</div>
@@ -73,7 +130,6 @@ export default function Leaderboard({ onVoltar }: { onVoltar: () => void }) {
                 <div className="col-span-2 text-right">Tempo Total</div>
               </div>
 
-              {/* LISTA DE EQUIPAS */}
               {ranking.map((equipa, index) => {
                 const isTop3 = index < 3;
                 const { titulo, cor } = calcularTitulo(equipa.err);
@@ -88,14 +144,12 @@ export default function Leaderboard({ onVoltar }: { onVoltar: () => void }) {
                       'bg-slate-800/50 border-slate-700/50 hover:bg-slate-800'
                     }`}
                   >
-                    {/* POSIÇÃO */}
                     <div className="col-span-1 flex justify-center">
                       <span className={`text-3xl font-black ${index === 0 ? 'text-yellow-400' : index === 1 ? 'text-slate-300' : index === 2 ? 'text-orange-500' : 'text-slate-600'}`}>
                         {index + 1}º
                       </span>
                     </div>
 
-                    {/* NOMES */}
                     <div className="col-span-4 flex flex-col">
                       <span className={`text-xl font-extrabold ${isTop3 ? 'text-white' : 'text-slate-300'}`}>
                         {equipa.p1} <span className="text-slate-600 font-normal">&amp;</span> {equipa.p2}
@@ -103,14 +157,12 @@ export default function Leaderboard({ onVoltar }: { onVoltar: () => void }) {
                       <span className="text-xs font-mono text-indigo-400 mt-1 uppercase tracking-wider">{equipa.lvl}</span>
                     </div>
 
-                    {/* TÍTULO RPG */}
                     <div className="col-span-3 flex items-center">
                       <span className={`font-black tracking-widest text-sm ${cor}`}>
                         {titulo}
                       </span>
                     </div>
 
-                    {/* ERROS COM DETALHE */}
                     <div className="col-span-2 flex flex-col items-center justify-center">
                       <span className={`text-2xl font-black ${equipa.err === 0 ? 'text-emerald-400' : equipa.err > 5 ? 'text-red-400' : 'text-yellow-400'}`}>
                         {equipa.err}
@@ -122,7 +174,6 @@ export default function Leaderboard({ onVoltar }: { onVoltar: () => void }) {
                       )}
                     </div>
 
-                    {/* TEMPO */}
                     <div className="col-span-2 flex justify-end">
                       <span className="text-xl font-mono font-bold text-slate-300 bg-slate-900/50 px-3 py-1 rounded-lg border border-slate-700">
                         ⏱️ {formatarTempo(equipa.t_seg)}
